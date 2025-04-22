@@ -1,0 +1,6 @@
+MainWindow
+  id: tutorialwindow
+  height: 255
+  width: 438
+  opacity: 0.85
+  !text: tr("Mod simples")

@@ -1,0 +1,10 @@
+Module
+  name: Pokebag
+  description: Exemplo de janela estilo Pokebag
+  author: falco
+  sandboxed: true
+  scripts: [ pokebag ]
+  autoload: true
+  version:0.1
+  @onLoad: init()
+  @onUnload: terminate()
