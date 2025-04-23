@@ -22,6 +22,18 @@ function animateHealthBar(widget, targetPercent, duration)
     step()
 end
 
+function updateName()
+    local player = g_game.getLocalPlayer()
+    if player then
+        local char = g_game.getCharacterName()
+        print("Atualizando nome do jogador: " .. char)
+
+        local playerNameLabel = healthBarWindow:recursiveGetChildById(
+                                    'playerName')
+        if playerNameLabel then playerNameLabel:setText(char) end
+    end
+end
+
 function updateHealth()
     local player = g_game.getLocalPlayer()
     if not player or not healthBarWindow then return end
@@ -31,14 +43,10 @@ function updateHealth()
     local healthPercent = (hp / maxHp) * 100
 
     local healthFill = healthBarWindow:recursiveGetChildById('healthFill')
-    if healthFill then
-        local parentWidth = healthFill:getParent():getWidth()
-        local targetWidth = math.floor(parentWidth * (healthPercent / 100))
-        animateHealthBar(healthFill, healthPercent, 250)
-    end
+    if healthFill then animateHealthBar(healthFill, healthPercent, 250) end
 
-    local hpLabel = healthBarWindow:recursiveGetChildById('hpLabel')
-    if hpLabel then hpLabel:setText(string.format("%d / %d HP", hp, maxHp)) end
+    local hpLabel = healthBarWindow:recursiveGetChildById('hpText')
+    if hpLabel then hpLabel:setText(string.format("%d%%", healthPercent)) end
 end
 
 function updateLevel()
@@ -49,59 +57,100 @@ function updateLevel()
     if levelLabel then levelLabel:setText("Level: " .. player:getLevel()) end
 end
 
+function expForLevel(level)
+    return math.floor(
+               (50 * level ^ 3) / 3 - 100 * level ^ 2 + (850 * level) / 3 - 200)
+end
+
 function updateExperience()
     local player = g_game.getLocalPlayer()
     if not player or not healthBarWindow then return end
 
+    local expBar = healthBarWindow:recursiveGetChildById('expBar')
     local expFill = healthBarWindow:recursiveGetChildById('expFill')
     local expText = healthBarWindow:recursiveGetChildById('expText')
 
-    local expPercent = player:getLevelPercent() or 0
+    local rawExpPercent = player:getLevelPercent() or 0
+    local expPercent = math.max(0, rawExpPercent)
+    local exp = player:getExperience()
+    local nextLevelExp = expForLevel(player:getLevel() + 1)
+    local remainingExp = player:expToAdvance()
+    local tooltipText = string.format("%d to next level", remainingExp)
 
-    if expFill then
-        local parentWidth = expFill:getParent():getWidth()
-        local targetWidth = math.floor(parentWidth * (expPercent / 100))
-        animateHealthBar(expFill, expPercent, 250)
-    end
+    print("Atualizando experiência do jogador: " .. expPercent)
+
+    if expFill then animateHealthBar(expFill, expPercent, 250) end
 
     if expText then
-        local exp = player:getExperience()
-        local nextLevelExp = expForLevel(player:getLevel() + 1)
-        expText:setText(string.format("%d / %d EXP", exp, nextLevelExp))
+        expText:setText(string.format("%d%%", expPercent))
+        expBar:setTooltip(tooltipText)
     end
 end
 
+function onPlayerLevelChange(player, level, percent)
+    updateLevel()
+
+    if not healthBarWindow then return end
+
+    local expFill = healthBarWindow:recursiveGetChildById('expFill')
+    local expText = healthBarWindow:recursiveGetChildById('expText')
+
+    if not expFill or not expText then return end
+
+    local expPercent = math.max(0, percent)
+    local exp = player:getExperience()
+    local nextLevelExp = expForLevel(level + 1)
+
+    animateHealthBar(expFill, expPercent, 250)
+    expText:setText(string.format("%d%%", expPercent))
+
+end
+
+function loadHealthBar()
+    if healthBarWindow then
+        healthBarWindow:destroy()
+        healthBarWindow = nil
+    end
+
+    healthBarWindow = g_ui.loadUI('healthbar.otui',
+                                  modules.game_interface.getRightPanel())
+    if not healthBarWindow then
+        perror("Falha ao carregar healthbar.otui")
+        return
+    end
+
+    modules.game_interface.getRootPanel():addChild(healthBarWindow)
+
+    updateName()
+    updateHealth()
+    updateLevel()
+    updateExperience()
+
+    healthBarWindow:show()
+end
+
 function init()
-    print("Iniciando modulo healthbar...")
     connect(LocalPlayer, {
         onHealthChange = updateHealth,
         onLevelChange = updateLevel,
         onExperienceChange = updateExperience
     })
 
-    addEvent(function()
-        print("Testando acesso ao arquivo OTUI")
-        print("Arquivo relativo existe?",
-              g_resources.fileExists("healthbar.otui"))
+    connect(g_game, {
+        onLogin = function() addEvent(function() loadHealthBar() end) end,
+        onGameEnd = terminate
+    })
 
-        healthBarWindow = g_ui.loadUI('healthbar.otui',
-                                      modules.game_interface.getRightPanel())
-        if not healthBarWindow then
-            perror("Falha ao carregar healthbar.otui")
-            return
-        end
-
-        modules.game_interface.getRootPanel():addChild(healthBarWindow)
-        updateHealth()
-        updateLevel()
-        updateExperience()
-        healthBarWindow:show()
-    end)
+    -- Caso esteja online já ao carregar
+    if g_game.isOnline() then addEvent(function() loadHealthBar() end) end
 end
 
 function terminate()
-    disconnect(LocalPlayer,
-               {onHealthChange = updateHealth, onLevelChange = updateLevel})
+    disconnect(LocalPlayer, {
+        onHealthChange = updateHealth,
+        onLevelChange = onPlayerLevelChange,
+        onExperienceChange = updateExperience
+    })
 
     if healthBarWindow then
         healthBarWindow:destroy()
