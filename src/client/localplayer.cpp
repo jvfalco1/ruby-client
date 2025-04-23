@@ -565,10 +565,22 @@ bool LocalPlayer::hasSight(const Position &pos)
 
 int LocalPlayer::expForLevel(int level)
 {
-    return (50.0 * level * level * level) / 3.0 - 100.0 * level * level + (850.0 * level) / 3.0 - 200.0;
-}
+    level = (level - 1 < 1) ? 1 : level - 1; // evita level < 1 sem usar std::max
 
+    return ((50 * level * level * level) - (150 * level * level) + (400 * level)) / 3;
+}
 int LocalPlayer::expToAdvance()
 {
-    return expForLevel(m_level + 1) - m_experience;
+    if (m_level <= 0)
+        return 0;
+
+    int nextExp = expForLevel(m_level + 1);
+    int exp = m_experience;
+    int result = nextExp - exp;
+
+    g_logger.debug(stdext::format(
+        "[DEBUG] Level: %d | EXP atual: %d | EXP próximo nível: %d | Faltam: %d",
+        m_level, exp, nextExp, result));
+
+    return (result < 0) ? 0 : result; // evita valores negativos
 }

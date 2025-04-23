@@ -13,7 +13,7 @@ UIWindow
 
     Label
       id: playerName
-      text: Falco
+      text: Unkown name
       font: verdana-11px-rounded
       text-color: yellow
       anchors.left: parent.left
@@ -53,10 +53,11 @@ UIWindow
       anchors.verticalCenter: parent.verticalCenter
       width: 50
 
-  Panel
+  UIWidget
     id: expBar
     size: 260 12
     background-color: #222222
+    mouse-opaque:true
 
     Panel
       id: expFill
