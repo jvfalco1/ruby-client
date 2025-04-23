@@ -1,0 +1,12 @@
+Module
+  name: game_healthbar
+  description: HealthBar personalizada que mostra vida e level
+  author: falco
+  sandboxed: true
+  scripts: [ healthbar ]
+  autoload: true
+  draggable:true
+  visible:true
+  version: 0.1
+  @onLoad: init()
+  @onUnload: terminate()

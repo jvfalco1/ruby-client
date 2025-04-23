@@ -29,7 +29,8 @@
 // @bindclass
 class LocalPlayer : public Player
 {
-    enum {
+    enum
+    {
         PREWALK_TIMEOUT = 1000
     };
 
@@ -39,7 +40,7 @@ public:
     void unlockWalk() { m_walkLockExpiration = 0; }
     void lockWalk(int millis = 250);
     void stopAutoWalk();
-    bool autoWalk(const Position& destination);
+    bool autoWalk(const Position &destination);
     bool canWalk(Otc::Direction direction);
 
     void setStates(int states);
@@ -55,7 +56,7 @@ public:
     void setStamina(double stamina);
     void setKnown(bool known) { m_known = known; }
     void setPendingGame(bool pending) { m_pending = pending; }
-    void setInventoryItem(Otc::InventorySlot inventory, const ItemPtr& item);
+    void setInventoryItem(Otc::InventorySlot inventory, const ItemPtr &item);
     void setProfession(int profession);
     void setClan(int clan);
     void setPremium(bool premium);
@@ -74,6 +75,9 @@ public:
     double getFreeCapacity() { return m_freeCapacity; }
     double getTotalCapacity() { return m_totalCapacity; }
     double getExperience() { return m_experience; }
+    int getExperiencePercent();
+    int expToAdvance();
+    static int expForLevel(int level);
     double getLevel() { return m_level; }
     double getLevelPercent() { return m_levelPercent; }
     double getPokemonHealth() { return m_pokemonHealth; }
@@ -86,7 +90,7 @@ public:
     int getSound() { return m_sound; }
     int getListeningSound() { return m_sound; }
 
-    bool hasSight(const Position& pos);
+    bool hasSight(const Position &pos);
     bool isKnown() { return m_known; }
     bool isPreWalking() { return m_preWalking; }
     bool isAutoWalking() { return m_autoWalkDestination.isValid(); }
@@ -98,10 +102,10 @@ public:
     bool isLocalPlayer() { return true; }
 
     virtual void onAppear();
-    virtual void onPositionChange(const Position& newPos, const Position& oldPos);
+    virtual void onPositionChange(const Position &newPos, const Position &oldPos);
 
 protected:
-    void walk(const Position& oldPos, const Position& newPos);
+    void walk(const Position &oldPos, const Position &newPos);
     void preWalk(Otc::Direction direction);
     void cancelWalk(Otc::Direction direction = Otc::InvalidDirection);
     void stopWalk();

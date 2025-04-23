@@ -268,9 +268,9 @@ void UIWidget::parseBaseStyle(const OTMLNodePtr& styleNode)
 
             if(!layoutType.empty()) {
                 UILayoutPtr layout;
-                if(layoutType == "horizontalBox")
+                if(layoutType == "horizontalBox" || layoutType == "horizontal")
                     layout = UIHorizontalLayoutPtr(new UIHorizontalLayout(static_self_cast<UIWidget>()));
-                else if(layoutType == "verticalBox")
+                else if(layoutType == "verticalBox" || layoutType == "vertical")
                     layout = UIVerticalLayoutPtr(new UIVerticalLayout(static_self_cast<UIWidget>()));
                 else if(layoutType == "grid")
                     layout = UIGridLayoutPtr(new UIGridLayout(static_self_cast<UIWidget>()));
